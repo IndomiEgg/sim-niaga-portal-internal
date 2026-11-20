@@ -3,7 +3,6 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { roleProfiles } from '../../data/screens';
 import { Brand, Button } from '../../components/ui/Primitives';
 import { apiClient, apiTokenKey, getApiError } from '../../services/api';
-import { canUseLocalPreview, endLocalPreview, isLocalPreview, previewRoles, startLocalPreview } from '../../services/previewMode';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -14,10 +13,6 @@ export function LoginPage() {
   const savedRole = localStorage.getItem('sim-role');
   const role = roleProfiles[requestedRole] ? requestedRole : roleProfiles[savedRole] ? savedRole : 'Admin Prodi';
   const roleNames = { dosen: 'Dosen', admin_prodi: 'Admin Prodi', kaprodi: 'Kaprodi', kajur: 'Kajur' };
-  const openPreview = (selectedRole) => {
-    if (!startLocalPreview(selectedRole)) return;
-    navigate(`/app/${roleProfiles[selectedRole].nav[0]}`, { replace: true });
-  };
 
   return <div className="login-page">
     <Link to="/" className="login-back">← Kembali ke layanan publik</Link>
@@ -32,10 +27,7 @@ export function LoginPage() {
           const roles=(account.peran||[]).map((item)=>({apiRole:item.peran||item,role:roleNames[item.peran||item]})).filter((item)=>item.role);
           const selected=roles.find((item)=>item.role===role)||(!requestedRole&&roles[0]);
           if(!selected){setError(`Akun berhasil dikenali, tetapi tidak memiliki peran ${role}. Gunakan tautan login sesuai peran akun.`);return;}
-          if(isLocalPreview())endLocalPreview();
           localStorage.setItem(apiTokenKey,result.token); localStorage.setItem('sim-role',selected.role); localStorage.setItem('simniaga-api-user',JSON.stringify(account));
-          const roleInfo=(account.peran||[]).find((item)=>(item.peran||item)===selected.apiRole);
-          localStorage.setItem('simniaga-demo-user',JSON.stringify({id:account.id,email:account.email,role:selected.role,name:account.nama||'',prodi:roleInfo?.prodi?.nama||''}));
           navigate(account.wajib_ganti_password?'/app/K-02':`/app/${roleProfiles[selected.role].nav[0]}`);
         } catch(err){setError(getApiError(err));} finally{setLoading(false);}
       }}>
@@ -46,7 +38,6 @@ export function LoginPage() {
       </form>
       {error&&<p className="auth-notice" role="alert">{error}</p>}
       <p className="auth-footnote">Login memakai akun staf yang sudah dibuat di backend.</p>
-      {canUseLocalPreview()&&<section className="local-preview-box"><b>Pratinjau lokal tanpa akun</b><p>Mode ini hanya menampilkan layar dan menyimpan data uji di browser. Tidak ada perubahan ke database.</p><div>{previewRoles.map((item)=><Button key={item} type="button" kind="secondary" onClick={()=>openPreview(item)}>Buka {item}</Button>)}</div></section>}
     </div>
   </div>;
 }

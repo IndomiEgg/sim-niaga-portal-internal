@@ -5,18 +5,18 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  const apiTarget = env.VITE_API_PROXY_TARGET || 'https://api.rassid.fun';
+  const apiTarget = env.VITE_API_PROXY_TARGET;
 
   return {
     plugins: [react(), tailwindcss()],
     server: {
-      proxy: {
+      ...(apiTarget ? { proxy: {
         '/api': {
           target: apiTarget,
           changeOrigin: true,
           secure: true,
         },
-      },
+      } } : {}),
     },
   };
 });

@@ -36,7 +36,6 @@ export async function logoutApi() {
   } finally {
     localStorage.removeItem(apiTokenKey);
     localStorage.removeItem('simniaga-api-user');
-    localStorage.removeItem('simniaga-demo-user');
     localStorage.removeItem('sim-role');
   }
 }

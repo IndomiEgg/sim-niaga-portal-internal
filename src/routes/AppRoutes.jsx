@@ -8,17 +8,15 @@ import AdminProdiPage from '../pages/admin-prodi/AdminProdiPage';
 import KaprodiPage from '../pages/kaprodi/KaprodiPage';
 import KajurPage from '../pages/kajur/KajurPage';
 import { apiTokenKey } from '../services/api';
-import { isLocalPreview } from '../services/previewMode';
 
 const getScreen = (code) => screens.find((screen) => screen.code.toLowerCase() === (code || '').toLowerCase());
 
 function PortalRoute() {
   const { screenCode } = useParams();
   const [apiUser] = useState(() => { try { return JSON.parse(localStorage.getItem('simniaga-api-user') || 'null'); } catch { return null; } });
-  const preview = isLocalPreview();
-  const allowedRoles = preview ? Object.keys(roleProfiles) : (apiUser?.peran || []).map((item) => ({ dosen: 'Dosen', admin_prodi: 'Admin Prodi', kaprodi: 'Kaprodi', kajur: 'Kajur' }[item.peran || item])).filter((role) => roleProfiles[role]);
+  const allowedRoles = (apiUser?.peran || []).map((item) => ({ dosen: 'Dosen', admin_prodi: 'Admin Prodi', kaprodi: 'Kaprodi', kajur: 'Kajur' }[item.peran || item])).filter((role) => roleProfiles[role]);
   const [role, setRole] = useState(() => { const saved = localStorage.getItem('sim-role'); return allowedRoles.includes(saved) ? saved : allowedRoles[0] || 'Admin Prodi'; });
-  if ((!preview && !localStorage.getItem(apiTokenKey)) || !allowedRoles.length) return <Navigate to="/login" replace />;
+  if (!localStorage.getItem(apiTokenKey) || !allowedRoles.length) return <Navigate to="/login" replace />;
   if (!allowedRoles.includes(role)) return <Navigate to="/app/K-04" replace />;
   const screen = getScreen(screenCode) || getScreen(roleProfiles[role].nav[0]);
   if (screen.code === 'K-01') return <Navigate to="/login" replace />;
@@ -26,7 +24,7 @@ function PortalRoute() {
   const allowed = screen.users.split(',').some((user) => ['Semua', 'Semua peran berakun'].includes(user.trim()) || user.trim() === role) || roleProfiles[role].nav.includes(screen.code);
   if (!allowed) return <Navigate to="/app/K-04" replace />;
   const Page = ({ Dosen: DosenPage, 'Admin Prodi': AdminProdiPage, Kaprodi: KaprodiPage, Kajur: KajurPage })[role];
-  return <PortalLayout role={role} setRole={setRole} allowedRoles={allowedRoles} preview={preview} current={screen}><Page screen={screen} /></PortalLayout>;
+  return <PortalLayout role={role} setRole={setRole} allowedRoles={allowedRoles} current={screen}><Page screen={screen} /></PortalLayout>;
 }
 
 export function AppRoutes() {
